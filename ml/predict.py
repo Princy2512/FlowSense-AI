@@ -121,14 +121,7 @@ def predict(payload: dict) -> float:
 
     features = bundle["features"]
     Xf = X[features]
-
-    models = bundle["models"]
-    weights = bundle["weights"]
-    pred = (
-        float(weights["lgb"]) * float(models["lgb"].predict(Xf)[0])
-        + float(weights["xgb"]) * float(models["xgb"].predict(Xf)[0])
-        + float(weights["cat"]) * float(models["cat"].predict(Xf)[0])
-    )
+    pred = float(bundle["model"].predict(Xf)[0])
     return float(pred)
 
 

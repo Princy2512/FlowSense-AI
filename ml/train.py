@@ -13,8 +13,6 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 
 import lightgbm as lgb
-import xgboost as xgb
-from catboost import CatBoostRegressor
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -237,58 +235,32 @@ def main() -> None:
 
     lgb_params = {
         "objective": "regression",
-        "learning_rate": 0.03,
-        "n_estimators": 3000,
+        "learning_rate": 0.05,
+        "n_estimators": 1000,
+        "max_depth": 8,
+        "num_leaves": 31,
         "random_state": 42,
-    }
-    xgb_params = {
-        "objective": "reg:squarederror",
-        "learning_rate": 0.03,
-        "n_estimators": 3000,
-        "max_depth": 10,
-        "random_state": 42,
-    }
-    cat_params = {
-        "loss_function": "RMSE",
-        "learning_rate": 0.03,
-        "iterations": 3000,
-        "depth": 8,
-        "random_seed": 42,
-        "verbose": False,
     }
 
-    # CV score for sanity (your ensemble weights)
+    # CV score for sanity
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     oof = np.zeros(len(X))
     for tr_idx, va_idx in kf.split(X, y):
         X_tr, X_val = X.iloc[tr_idx], X.iloc[va_idx]
         y_tr, y_val = y.iloc[tr_idx], y.iloc[va_idx]
 
-        m_lgb = lgb.LGBMRegressor(**lgb_params)
+        m_lgb = lgb.LGBMRegressor(**lgb_params, verbose=-1)
         m_lgb.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], callbacks=[lgb.early_stopping(100)])
 
-        m_xgb = xgb.XGBRegressor(**xgb_params)
-        m_xgb.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False)
-
-        m_cat = CatBoostRegressor(**cat_params)
-        m_cat.fit(X_tr, y_tr, eval_set=(X_val, y_val))
-
-        oof[va_idx] = (
-            (m_lgb.predict(X_val) * 0.4)
-            + (m_xgb.predict(X_val) * 0.3)
-            + (m_cat.predict(X_val) * 0.3)
-        )
+        oof[va_idx] = m_lgb.predict(X_val)
     cv_r2 = float(r2_score(y, oof))
 
-    # Train final models on full data
-    final_lgb = lgb.LGBMRegressor(**lgb_params).fit(X, y)
-    final_xgb = xgb.XGBRegressor(**xgb_params).fit(X, y, verbose=False)
-    final_cat = CatBoostRegressor(**cat_params).fit(X, y)
+    # Train final model on full data
+    final_model = lgb.LGBMRegressor(**lgb_params).fit(X, y)
 
     joblib.dump(
         {
-            "models": {"lgb": final_lgb, "xgb": final_xgb, "cat": final_cat},
-            "weights": {"lgb": 0.4, "xgb": 0.3, "cat": 0.3},
+            "model": final_model,
             "features": features,
             "label_maps": encoders,
             "target_encoding": te_mappings,

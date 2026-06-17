@@ -1,4 +1,4 @@
-# ml/artifacts/  <-- commented out to allow committing trained model for faster deploys!
+ml/artifacts/
 catboost_info/
 .venv/
 node_modules/

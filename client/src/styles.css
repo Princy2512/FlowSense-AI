@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* subtle background grid */
+.bg-grid {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.12) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.68), rgba(2, 6, 23, 0.52));
+  backdrop-filter: blur(10px);
+}
+

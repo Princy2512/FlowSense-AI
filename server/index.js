@@ -34,15 +34,9 @@ if (fs.existsSync(path.join(ROOT, "ml", "artifacts"))) {
 
 function resolvePythonBin() {
   console.log("Resolving Python binary...");
-  // First try python3
-  try {
-    spawn("python3", ["--version"]);
-    console.log("Using python3");
-    return "python3";
-  } catch (e) {
-    console.log("python3 not found, trying python");
-    return "python";
-  }
+  // Just use python3 directly since that's what Render has
+  console.log("Using python3");
+  return "python3";
 }
 
 function runPythonPredict(payload) {

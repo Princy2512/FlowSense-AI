@@ -6,7 +6,6 @@ import { execSync } from 'child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = __dirname;
 const CLIENT_DIR = path.join(ROOT, 'client');
-const SERVER_DIR = path.join(ROOT, 'server');
 const ML_DIR = path.join(ROOT, 'ml');
 
 console.log('=== Starting Build ===');
@@ -18,31 +17,20 @@ console.log('\n--- Installing npm dependencies ---');
 execSync('npm install', { cwd: ROOT, stdio: 'inherit' });
 execSync('npm install', { cwd: CLIENT_DIR, stdio: 'inherit' });
 
-// Step 2: Install Python dependencies
+// Step 2: Install Python dependencies and train model
 console.log('\n--- Installing Python dependencies ---');
 try {
   execSync('python3 --version', { stdio: 'inherit' });
   execSync('python3 -m pip install --upgrade pip', { cwd: ROOT, stdio: 'inherit' });
-  execSync('python3 -m pip install -r ml/requirements.txt --user', { cwd: ROOT, stdio: 'inherit' });
+  execSync('python3 -m pip install -r ml/requirements.txt', { cwd: ROOT, stdio: 'inherit' });
+  
+  console.log('\n--- Training ML model ---');
+  execSync('python3 ml/train.py', { cwd: ROOT, stdio: 'inherit' });
 } catch (e) {
-  console.log('Python install warning (might be okay):', e.message);
+  console.error('Python step failed:', e.message);
 }
 
-// Step 3: Train ML model or use existing artifacts
-console.log('\n--- Checking ML Artifacts ---');
-const artifactsPath = path.join(ML_DIR, 'artifacts');
-if (fs.existsSync(artifactsPath) && fs.readdirSync(artifactsPath).length > 0) {
-  console.log('Artifacts already exist! Skipping training.');
-} else {
-  console.log('Training ML model...');
-  try {
-    execSync('python3 ml/train.py', { cwd: ROOT, stdio: 'inherit' });
-  } catch (e) {
-    console.error('ML training failed but continuing:', e.message);
-  }
-}
-
-// Step 4: Build client
+// Step 3: Build client
 console.log('\n--- Building Client ---');
 execSync('npm run build', { cwd: CLIENT_DIR, stdio: 'inherit' });
 
@@ -55,6 +43,7 @@ if (fs.existsSync(clientDistPath)) {
   console.log('Client dist contents:', fs.readdirSync(clientDistPath));
 }
 
+const artifactsPath = path.join(ML_DIR, 'artifacts');
 console.log('Artifacts path:', artifactsPath);
 console.log('Artifacts exists:', fs.existsSync(artifactsPath));
 if (fs.existsSync(artifactsPath)) {

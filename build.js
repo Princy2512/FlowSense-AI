@@ -21,8 +21,8 @@ execSync('npm install', { cwd: CLIENT_DIR, stdio: 'inherit' });
 console.log('\n--- Installing Python dependencies ---');
 try {
   execSync('python3 --version', { stdio: 'inherit' });
-  execSync('python3 -m pip install --upgrade pip', { cwd: ROOT, stdio: 'inherit' });
-  execSync('python3 -m pip install -r ml/requirements.txt', { cwd: ROOT, stdio: 'inherit' });
+  execSync('python3 -m pip install --upgrade pip --break-system-packages', { cwd: ROOT, stdio: 'inherit' });
+  execSync('python3 -m pip install -r ml/requirements.txt --break-system-packages', { cwd: ROOT, stdio: 'inherit' });
   
   console.log('\n--- Training ML model ---');
   execSync('python3 ml/train.py', { cwd: ROOT, stdio: 'inherit' });

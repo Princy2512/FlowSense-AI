@@ -1,0 +1,4 @@
+{
+  "outputDirectory": "client/dist",
+  "buildCommand": "node build.js"
+}
